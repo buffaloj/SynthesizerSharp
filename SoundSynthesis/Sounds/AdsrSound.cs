@@ -1,0 +1,46 @@
+﻿using ControlGraph.AM;
+using ControlGraph.Nodes;
+
+namespace ControlGraph.Sounds
+{
+    public class AdsrSound
+    {
+        private double _nextAngle = 0.0;
+        private long _nextSample = 0;
+        private int _sampleRate = 44100;
+        protected int _freqency = 100;
+
+        public AdsrSound(int sampleRate=44100)
+        {
+            sampleRate = _sampleRate;
+        }
+
+        public void Reset()
+        {
+            _nextAngle = 0.0;
+            _nextSample = 0;
+        }
+
+        public bool TryFillBuffer(Int16[] buffer)
+        {
+            var speed = 0.05;
+
+            _nextAngle = TriangleWave.GenerateTriangleWave(_nextAngle, buffer, _freqency, _sampleRate);
+            var nextSample = AdsrEnvelope.ShapeAsAdsr(
+                _nextSample,
+                buffer, _sampleRate,
+                speed * 0.5,
+                speed * 1.0,
+                speed * 6.0,
+                speed * 1.0,
+                0.5,
+                0.2);
+
+            if (nextSample == 0)
+                return false;
+
+            _nextSample = nextSample;
+            return true;
+        }
+    }
+}
