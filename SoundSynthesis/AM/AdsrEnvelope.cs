@@ -1,4 +1,4 @@
-﻿namespace ControlGraph.AM
+﻿namespace SoundSynthesis.AM
 {
     public class AdsrEnvelope
     {

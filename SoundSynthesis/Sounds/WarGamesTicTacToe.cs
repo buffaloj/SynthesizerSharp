@@ -1,7 +1,7 @@
-﻿using ControlGraph.AM;
-using ControlGraph.Nodes;
+﻿using SoundSynthesis.AM;
+using SoundSynthesis.Waveforms;
 
-namespace ControlGraph.Sounds
+namespace SoundSynthesis.Sounds
 {
     public class WarGamesTicTacHigh : WarGamesTicTacToe
     {

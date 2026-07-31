@@ -1,6 +1,6 @@
-﻿using ControlGraph.Nodes;
+﻿using SoundSynthesis.Waveforms;
 
-namespace ControlGraph.Sounds
+namespace SoundSynthesis.Sounds
 {
     public class Siren
     {

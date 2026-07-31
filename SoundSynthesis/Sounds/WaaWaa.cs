@@ -1,12 +1,8 @@
-﻿
-
-namespace ControlGraph.Sounds
+﻿namespace SoundSynthesis.Sounds
 {
     public class WaaWaa
     {
         private int _sampleRate = 44100;
-
-        private short _nextSample;
 
         private double _lfAngle = 0.0;
         private double _lfAngleB = 0.0;
@@ -16,7 +12,6 @@ namespace ControlGraph.Sounds
 
         protected double _freqency1 = 500;
         protected double _freqency2 = 500;
-        private double _lfoAngle = 0.0;
 
         private double _lfoIncrement = 0.0;
         private double _angleIncrement = 0.001;
@@ -53,10 +48,8 @@ namespace ControlGraph.Sounds
 
         public void Reset()
         {
-            _nextSample = 0;
             _nextAngle1 = 0;
             _nextAngle2 = 0;
-            _lfoAngle = 0;
             _lfAngleB = 0;
         }
 
@@ -101,7 +94,6 @@ namespace ControlGraph.Sounds
                     _lfAngle += _angleIncrement;
                 }
             }
-            _nextSample = 0;
 
             return true;
         }

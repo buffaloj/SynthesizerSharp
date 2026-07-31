@@ -1,6 +1,6 @@
 ﻿using Silk.NET.OpenAL;
 
-namespace ControlGraph
+namespace ConsoleApp
 {
     public unsafe class Speaker
     {

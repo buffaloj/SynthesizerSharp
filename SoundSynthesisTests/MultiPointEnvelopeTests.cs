@@ -1,4 +1,4 @@
-﻿using ControlGraph.AM;
+﻿using SoundSynthesis.AM;
 
 namespace SoundSynthesisTests
 {

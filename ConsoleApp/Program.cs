@@ -1,8 +1,7 @@
-﻿using ControlGraph;
-using ControlGraph.Nodes;
-using ControlGraph.Sounds;
+﻿using ConsoleApp;
 using MathNet.Numerics;
 using MathNet.Numerics.IntegralTransforms;
+using SoundSynthesis.Sounds;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;

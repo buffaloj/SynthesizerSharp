@@ -1,4 +1,4 @@
-﻿namespace ControlGraph.Nodes
+﻿namespace SoundSynthesis.Waveforms
 {
     public class SawtoothWave
     {

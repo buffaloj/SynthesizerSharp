@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace ControlGraph.Nodes
+namespace ConsoleApp
 {
     public class Keyboard
     {
@@ -50,7 +50,7 @@ namespace ControlGraph.Nodes
             short scanResult = VkKeyScan(key);
 
             // The low-order byte contains the virtual key code
-            VirtualKey = (scanResult & 0xFF);
+            VirtualKey = scanResult & 0xFF;
         }
 
         public event Action<char> Pressed;

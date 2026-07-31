@@ -1,4 +1,4 @@
-﻿namespace ControlGraph.Nodes
+﻿namespace ConsoleApp
 {
     public class WavFile
     {
