@@ -52,11 +52,39 @@ namespace ConsoleApp
             public uint SourceId { get; set; }
             public IEnumerable<BufferInfo> Buffers { get; set; }
             public Func<short[], bool> FillBuffer { get; set; }
+            public Func<double, double?> GetNextSample { get; set; }
             public Action StopComplete { get; set; }
 
             public BufferFormat Format { get; set; }
             public int SampleRate { get; set; }
             public bool IsPlaying { get; set; }
+
+            public bool FillBuffer2(short[] buffer)
+            {
+                if (FillBuffer != null)
+                    return FillBuffer(buffer);
+
+                if (GetNextSample != null)
+                {
+                    var timeStep = 1.0 / SampleRate;
+                    var filled = true;
+                    for (int i = 0; i < buffer.Length; i++)
+                    {
+                        var sample = GetNextSample(timeStep);
+                        if (sample != null)
+                            buffer[i] = (Int16)(sample.Value * Int16.MaxValue);
+                        else
+                        {
+                            buffer[i] = 0;
+                            filled = false;
+                        }
+                    }
+
+                    return filled;
+                }
+
+                return false;
+            }
         }
 
         private IList<SourceInfo> _soundSources = new List<SourceInfo>();
@@ -70,7 +98,8 @@ namespace ConsoleApp
             var al = AL.GetApi(true);
             foreach (var buffer in sourceInfo.Buffers)
             {
-                if (sourceInfo.FillBuffer.Invoke(buffer.PcmData))
+                //if (sourceInfo.FillBuffer.Invoke(buffer.PcmData))
+                if (sourceInfo.FillBuffer2(buffer.PcmData))
                 {
                     al.BufferData(buffer.BufferId, sourceInfo.Format, buffer.PcmData, sourceInfo.SampleRate);
 
@@ -130,6 +159,49 @@ namespace ConsoleApp
             return source.SourceId;
         }
 
+        public uint CreateSoundSource(
+            Func<double, double?> getNextSample,
+            Action? stopComplete,
+            Func<short[]> createBuffer,
+            int numBuffers = 2,
+            int sampleRate = 44100)
+        {
+            var al = AL.GetApi(true);
+            var format = BufferFormat.Mono16;
+
+            var buffers = new List<BufferInfo>();
+
+            var bufferIds = new uint[numBuffers];
+            fixed (uint* ptr = bufferIds)
+            {
+                al.GenBuffers(numBuffers, ptr);
+
+                for (var i = 0; i < numBuffers; i++)
+                {
+                    var info = new BufferInfo
+                    {
+                        BufferId = ptr[i],
+                        PcmData = createBuffer()
+                    };
+                    buffers.Add(info);
+                }
+            }
+
+            var source = new SourceInfo
+            {
+                SourceId = al.GenSource(),
+                Format = format,
+                SampleRate = sampleRate,
+                Buffers = buffers,
+                GetNextSample = getNextSample,
+                StopComplete = stopComplete
+            };
+
+            _soundSources.Add(source);
+
+            return source.SourceId;
+        }
+
         public void UpdateBufferQueues()
         {
             var al = AL.GetApi(true);
@@ -159,7 +231,7 @@ namespace ConsoleApp
                         buffer.IsQueued = false;
 
                         // Refill the buffer using your audio data provider
-                        if (source.FillBuffer(buffer.PcmData))
+                        if (source.FillBuffer2(buffer.PcmData))
                         {
                             al.BufferData(buffer.BufferId, source.Format, buffer.PcmData, source.SampleRate);
 

@@ -1,0 +1,145 @@
+﻿namespace SoundSynthesis
+{
+    public class Waveform
+    {
+        public static double Scale(double scale, double sample)
+        {
+            return sample * scale;
+        }
+
+        public static double Clip(double limit, double sample)
+        {
+            if (Math.Abs(sample) > limit && limit > 0)
+            {
+                return Math.Sign(sample) * limit;
+            }
+
+            return sample;
+        }
+
+        public static double Compress(params double[] samples)
+        {
+            if (samples == null || samples.Length == 0)
+            {
+                return 0.0;
+            }
+
+            var limit = 1.0;
+            double sum = 0.0;
+            for (int i = 0; i < samples.Length; i++)
+            {
+                sum += samples[i];
+            }
+
+            // Scale back the amplitude if the sum exceeds the limit
+            if (Math.Abs(sum) > limit && limit > 0)
+            {
+                return Math.Sign(sum) * limit;
+            }
+
+            return sum;
+        }
+
+        public static double Average(params double[] samples)
+        {
+            return samples.Sum() / samples.Length;
+        }
+
+        public static double Sum(params double[] samples)
+        {
+            return samples.Sum();
+        }
+
+        public static double Envelope(double t, double lengthSeconds, float[] amplitudes)
+        {
+            if (t > lengthSeconds)
+                return 0.0f;
+
+            var step = lengthSeconds / (amplitudes.Length-2);
+
+            var p = (int)Math.Floor(t / step);
+            var offset = t % step;
+            var lerpFactor = offset / step;
+            return amplitudes[p] + lerpFactor * (amplitudes[p + 1] - amplitudes[p]);
+        }
+
+        public static double Sin(double t, double frequency, double amplitude = 1.0)
+        {
+            return Math.Sin(2 * Math.PI * frequency * t) * amplitude;
+        }
+
+        public static double Square(double t, double frequency, double amplitude = 1.0)
+        {
+            return Math.Sin(2 * Math.PI * frequency * t) >= 0 ? amplitude : -amplitude;
+        }
+
+        public static double Triangle(double t, double frequency, double amplitude = 1.0)
+        {
+            double val = 2 * Math.Abs(2 * (t * frequency - Math.Floor(t * frequency + 0.5))) - 1;
+            return val * amplitude;
+        }
+
+        public static double Sawtooth(double t, double frequency, double amplitude = 1.0)
+        {
+            double phase = t * frequency;
+            double value = 2.0 * (phase - Math.Floor(0.5 + phase));
+
+            return value * amplitude;
+        }
+    }
+
+    public class OnOffSound
+    {
+        private int _nextSample = 0;
+        private Func<double, double> _getSample;
+
+        public OnOffSound(Func<double, double> getSampleFunc)
+        {
+            _getSample = getSampleFunc;
+        }
+
+        public bool On { get; set; }
+
+        public void Reset()
+        {
+            _nextSample = 0;
+        }
+
+        public double? GetSample(double timeStep)
+        {
+            var t = _nextSample++ * timeStep;
+            return On ? _getSample(t) : null;
+        }
+    }
+
+    public class Piano2
+    {
+        static float[] a1 = { 0.0f, 0.61907f,0.86878395f,1f,0.9578958f,0.7823687f,0.6116576f,0.6024435f,0.6542631f,0.69489557f,0.6596797f,0.6133857f,0.57042545f,0.5735033f,0.58243656f,0.5741675f,0.54610467f,0.5234845f,0.50525516f,0.51336247f,0.5134096f,0.5100834f,0.50227475f,0.48483908f,0.4652066f,0.4582415f,0.45218965f,0.4439041f,0.42803314f,0.41543227f,0.404475f,0.38909006f,0.3817356f,0.3759829f,0.36459196f,0.35344774f,0.32544932f,0.28817958f,0.25210667f,0.21649633f,0.18640429f,0.16106504f, 0.0f};
+        static float[] a2 = { 0.0f, 0.39545065f,0.27016094f,0.4020049f,0.36722156f,0.3608361f,0.37544948f,0.3113367f,0.3170851f,0.3294633f,0.31413245f,0.324657f,0.32243517f,0.29370624f,0.2959525f,0.29064354f,0.27278784f,0.27238598f,0.26328123f,0.25240028f,0.24675366f,0.24227686f,0.2289272f,0.21722086f,0.20825218f,0.201804f,0.19561784f,0.1881039f,0.17935781f,0.17491497f,0.16754913f,0.15682337f,0.14972562f,0.14290676f,0.13571471f,0.12911339f,0.11541654f,0.09983283f,0.08479012f,0.07021254f,0.058254678f,0.048644323f, 0.0f};
+        static float[] a3 = { 0.0f, 0.30425397f, 0.19320363f, 0.17831916f, 0.16745958f, 0.17479917f, 0.1608724f, 0.16502163f, 0.15318261f, 0.14936553f, 0.13955435f, 0.1365668f, 0.1268587f, 0.12455246f, 0.12205416f, 0.1173791f, 0.114385195f, 0.109621204f, 0.10437336f, 0.09955773f, 0.09609179f, 0.09013936f, 0.08698725f, 0.0823733f, 0.07912267f, 0.074163124f, 0.070377f, 0.06625862f, 0.0631116f, 0.058180764f, 0.05447528f, 0.049204443f, 0.04524136f, 0.04064894f, 0.03696407f, 0.03269402f, 0.028165713f, 0.0217952f, 0.016817331f, 0.012656829f, 0.009440821f, 0.0068889624f, 0.0f };
+        static float[] a4 = { 0.0f, 0.10756961f, 0.15216134f, 0.14140728f, 0.15321264f, 0.1465742f, 0.14715075f, 0.15842511f, 0.15710863f, 0.14915155f, 0.14556286f, 0.14697075f, 0.13715467f, 0.12979814f, 0.12766284f, 0.12045997f, 0.110787705f, 0.1046871f, 0.09749071f, 0.0890637f, 0.081242934f, 0.07449285f, 0.065206036f, 0.05681548f, 0.049660377f, 0.04336918f, 0.037276667f, 0.03266143f, 0.02729764f, 0.022155097f, 0.017802084f, 0.013855609f, 0.009741174f, 0.005997521f, 0.0032470797f, 0.004372164f, 0.006928469f, 0.008262894f, 0.00990861f, 0.0111460015f, 0.011961819f, 0.012196401f, 0.0f };
+        static float[] a5 = { 0.0f, 0.14884079f, 0.1771687f, 0.16240177f, 0.15835498f, 0.15294144f, 0.14770281f, 0.14261076f, 0.13479948f, 0.13119361f, 0.12806903f, 0.12290222f, 0.11461177f, 0.11037032f, 0.10443123f, 0.09766395f, 0.09029912f, 0.08495377f, 0.078328215f, 0.0726559f, 0.06572068f, 0.05849336f, 0.052016042f, 0.045867074f, 0.039470494f, 0.034391675f, 0.028535742f, 0.023242747f, 0.017667474f, 0.013213898f, 0.008425275f, 0.0037681153f, 0.0016950413f, 0.006170416f, 0.011988737f, 0.016807804f, 0.019392593f, 0.021231974f, 0.022207817f, 0.022143736f, 0.021994311f, 0.021195343f, 0.0f };
+        static float[] a6 = { 0.0f, 0.0735227f, 0.06828683f, 0.09789878f, 0.09794056f, 0.09442941f, 0.09304355f, 0.09221814f, 0.08644083f, 0.0777168f, 0.063170396f, 0.052692544f, 0.04199263f, 0.040164556f, 0.040529273f, 0.03946579f, 0.042363543f, 0.04274757f, 0.042395726f, 0.043343443f, 0.043250345f, 0.04161303f, 0.039373685f, 0.037114512f, 0.033179924f, 0.03102073f, 0.028258946f, 0.026800314f, 0.025075903f, 0.022557834f, 0.02260949f, 0.022181628f, 0.021514032f, 0.021943215f, 0.023286728f, 0.024009652f, 0.024454119f, 0.024025245f, 0.024169207f, 0.023471335f, 0.022688879f, 0.021861454f, 0.0f };
+        static float[] a7 = { 0.0f, 0.05552571f, 0.06896963f, 0.071148f, 0.070982434f, 0.0684182f, 0.06084368f, 0.053036544f, 0.049865626f, 0.048357833f, 0.04695688f, 0.041606024f, 0.03799593f, 0.033407707f, 0.03047437f, 0.026030824f, 0.025543664f, 0.022231469f, 0.018259652f, 0.017376807f, 0.015111932f, 0.011105961f, 0.009355962f, 0.0071020178f, 0.0059566577f, 0.006681188f, 0.0081805345f, 0.008726499f, 0.009420274f, 0.009929136f, 0.0117169f, 0.011881203f, 0.0138755f, 0.015351427f, 0.016163407f, 0.016639538f, 0.015717408f, 0.013600677f, 0.011648895f, 0.010653952f, 0.009639029f, 0.00879843f, 0.0f };
+        static float[] a8 = { 0.0f, 0.09003528f, 0.13010134f, 0.16857357f, 0.18062733f, 0.17105007f, 0.15925077f, 0.16080576f, 0.16207781f, 0.159453f, 0.14684254f, 0.13569246f, 0.12846732f, 0.12482544f, 0.11786482f, 0.10423127f, 0.08700166f, 0.07404475f, 0.061860837f, 0.049463328f, 0.036183402f, 0.023525618f, 0.011172449f, 0.012399357f, 0.023063825f, 0.031603586f, 0.038557604f, 0.048250955f, 0.059792735f, 0.06961902f, 0.076361865f, 0.0790933f, 0.083204046f, 0.089570336f, 0.09492608f, 0.09651968f, 0.08936237f, 0.07967538f, 0.071874045f, 0.06454076f, 0.05654503f, 0.048016228f, 0.0f };
+        static float[] a9 = { 0.0f, 0.07468857f, 0.07970116f, 0.07320525f, 0.06995647f, 0.06053194f, 0.05435692f, 0.051729806f, 0.044058595f, 0.03930096f, 0.035273574f, 0.028076269f, 0.023693783f, 0.018047128f, 0.01357505f, 0.008582831f, 0.0042663277f, 0.0027943274f, 0.004609149f, 0.0072708125f, 0.009803605f, 0.010171796f, 0.012634274f, 0.014120197f, 0.01486229f, 0.017117865f, 0.015863426f, 0.0152100995f, 0.016436951f, 0.01404406f, 0.013602044f, 0.012793213f, 0.011015127f, 0.011319698f, 0.010684798f, 0.008611706f, 0.008852856f, 0.0075935666f, 0.00714705f, 0.0066456734f, 0.005594066f, 0.00522049f, 0.0f };
+        static float[] a10 = { 0.0f, 0.040110886f, 0.049701195f, 0.04831055f, 0.044955403f, 0.04379506f, 0.044228934f, 0.041315723f, 0.037240032f, 0.033185054f, 0.029363243f, 0.025787776f, 0.021040946f, 0.016213555f, 0.012676118f, 0.008901614f, 0.0046329987f, 0.0014756881f, 0.0027221313f, 0.005297356f, 0.007844781f, 0.010353484f, 0.011188767f, 0.01179435f, 0.012825021f, 0.013356311f, 0.01331913f, 0.013100594f, 0.012795402f, 0.011832084f, 0.011262924f, 0.01020595f, 0.009174761f, 0.008034254f, 0.0072600124f, 0.0064903055f, 0.005116498f, 0.004522055f, 0.0038573467f, 0.003217548f, 0.0028890322f, 0.0028193335f, 0.0f };
+        static float[] a11 = { 0.0f, 0.06508419f, 0.06263691f, 0.05661686f, 0.05166754f, 0.042748705f, 0.040592715f, 0.0365889f, 0.033449486f, 0.029969087f, 0.022806535f, 0.017640183f, 0.012552705f, 0.008934773f, 0.0070258756f, 0.004080803f, 0.0034804377f, 0.0030846044f, 0.0032252346f, 0.0037577224f, 0.0033872866f, 0.0037052047f, 0.0032936928f, 0.0033596752f, 0.0037039511f, 0.003703588f, 0.004393501f, 0.00471061f, 0.004822282f, 0.0048098057f, 0.0049774116f, 0.0049976064f, 0.0048604617f, 0.0045863115f, 0.004377395f, 0.0041969684f, 0.0037620512f, 0.003176944f, 0.0025677267f, 0.0022148108f, 0.0017655466f, 0.0016386895f, 0.0f };
+        static float[] a12 = { 0.0f, 0.10634138f, 0.07885956f, 0.056941517f, 0.042908628f, 0.032518327f, 0.02459289f, 0.015730387f, 0.009331351f, 0.01217607f, 0.0139192715f, 0.012734965f, 0.0135277f, 0.013080464f, 0.010221602f, 0.008749915f, 0.0063260444f, 0.0067779925f, 0.009257613f, 0.011404724f, 0.01212618f, 0.0118869f, 0.011685459f, 0.012932578f, 0.012550078f, 0.0123699f, 0.012348547f, 0.0114626065f, 0.010479071f, 0.010113695f, 0.009748431f, 0.008945817f, 0.008193514f, 0.007095264f, 0.005960874f, 0.0053303814f, 0.0039998605f, 0.0029461395f, 0.0020365913f, 0.0011520227f, 0.00068478636f, 0.00035733276f, 0.0f };
+
+        static double P1(double t) => Waveform.Sin(t, 258, Waveform.Envelope(t, 0.5, a1));
+        static double P2(double t) => Waveform.Sin(t, 516, Waveform.Envelope(t, 0.5, a2));
+        static double P3(double t) => Waveform.Sin(t, 774, Waveform.Envelope(t, 0.5, a3));
+        static double P4(double t) => Waveform.Sin(t, 1032, Waveform.Envelope(t, 0.5, a4));
+        static double P5(double t) => Waveform.Sin(t, 1333, Waveform.Envelope(t, 0.5, a5));
+        static double P6(double t) => Waveform.Sin(t, 1591, Waveform.Envelope(t, 0.5, a6));
+        static double P7(double t) => Waveform.Sin(t, 1849, Waveform.Envelope(t, 0.5, a7));
+        static double P8(double t) => Waveform.Sin(t, 2107, Waveform.Envelope(t, 0.5, a8));
+        static double P9(double t) => Waveform.Sin(t, 2666, Waveform.Envelope(t, 0.5, a9));
+        static double P10(double t) => Waveform.Sin(t, 3225, Waveform.Envelope(t, 0.5, a10));
+        static double P11(double t) => Waveform.Sin(t, 3483, Waveform.Envelope(t, 0.5, a11));
+        static double P12(double t) => Waveform.Sin(t, 3784, Waveform.Envelope(t, 0.5, a12));
+
+        public static double PianoWaveform(double t) => Waveform.Scale(0.55, Waveform.Sum(P1(t), P2(t), P3(t), P4(t), P5(t), P6(t), P7(t), P8(t), P9(t), P10(t), P11(t), P12(t)));
+    }
+}

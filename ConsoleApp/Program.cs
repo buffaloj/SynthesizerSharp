@@ -1,6 +1,7 @@
 ﻿using ConsoleApp;
 using MathNet.Numerics;
 using MathNet.Numerics.IntegralTransforms;
+using SoundSynthesis;
 using SoundSynthesis.Sounds;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -39,6 +40,14 @@ var adsrSound = new AdsrSound();
 var adsrSourceId = speaker.CreateSoundSource(adsrSound.TryFillBuffer, adsrSound.Reset, () => new short[bufferSize]);
 keyboard.Key('m').Pressed += (c) => speaker.PlaySoundSource(adsrSourceId);
 
+double SinWave(double t) => Waveform.Sin(t, 300);
+
+var onOffSound = new OnOffSound(Piano2.PianoWaveform);
+
+//var onOffSound = new OnOffSound((t) => Waveform.Sin(t, 300, Math.Abs(Waveform.Sin(t, 1))) );
+var onOffSourceId = speaker.CreateSoundSource(onOffSound.GetSample, onOffSound.Reset, () => new short[bufferSize]);
+keyboard.Key('o').Pressed += (c) => { onOffSound.On = true; speaker.PlaySoundSource(onOffSourceId); };
+keyboard.Key('o').Released += (c) => onOffSound.On = false;
 
 var p1 = new P1();
 var p2 = new P2();
