@@ -40,46 +40,10 @@ var adsrSound = new AdsrSound();
 var adsrSourceId = speaker.CreateSoundSource(adsrSound.TryFillBuffer, adsrSound.Reset, () => new short[bufferSize]);
 keyboard.Key('m').Pressed += (c) => speaker.PlaySoundSource(adsrSourceId);
 
-double SinWave(double t) => Waveform.Sin(t, 300);
-
-var onOffSound = new OnOffSound(Piano2.PianoWaveform);
-
-//var onOffSound = new OnOffSound((t) => Waveform.Sin(t, 300, Math.Abs(Waveform.Sin(t, 1))) );
-var onOffSourceId = speaker.CreateSoundSource(onOffSound.GetSample, onOffSound.Reset, () => new short[bufferSize]);
-keyboard.Key('o').Pressed += (c) => { onOffSound.On = true; speaker.PlaySoundSource(onOffSourceId); };
-keyboard.Key('o').Released += (c) => onOffSound.On = false;
-
-var p1 = new P1();
-var p2 = new P2();
-var p3 = new P3();
-var p4 = new P4();
-var p5 = new P5();
-var p6 = new P6();
-var p7 = new P7();
-var p8 = new P8();
-var p9 = new P9();
-var piano1SourceId = speaker.CreateSoundSource(p1.TryFillBuffer, p1.Reset, () => new short[bufferSize]);
-var piano2SourceId = speaker.CreateSoundSource(p2.TryFillBuffer, p2.Reset, () => new short[bufferSize]);
-var piano3SourceId = speaker.CreateSoundSource(p3.TryFillBuffer, p3.Reset, () => new short[bufferSize]);
-var piano4SourceId = speaker.CreateSoundSource(p4.TryFillBuffer, p4.Reset, () => new short[bufferSize]);
-var piano5SourceId = speaker.CreateSoundSource(p5.TryFillBuffer, p5.Reset, () => new short[bufferSize]);
-var piano6SourceId = speaker.CreateSoundSource(p6.TryFillBuffer, p6.Reset, () => new short[bufferSize]);
-var piano7SourceId = speaker.CreateSoundSource(p7.TryFillBuffer, p7.Reset, () => new short[bufferSize]);
-var piano8SourceId = speaker.CreateSoundSource(p8.TryFillBuffer, p8.Reset, () => new short[bufferSize]);
-var piano9SourceId = speaker.CreateSoundSource(p9.TryFillBuffer, p9.Reset, () => new short[bufferSize]);
-keyboard.Key('r').Pressed += (c) =>
-{
-    speaker.PlaySoundSource(piano1SourceId);
-    speaker.PlaySoundSource(piano2SourceId);
-    speaker.PlaySoundSource(piano3SourceId);
-    speaker.PlaySoundSource(piano4SourceId);
-    speaker.PlaySoundSource(piano5SourceId);
-    speaker.PlaySoundSource(piano6SourceId);
-    speaker.PlaySoundSource(piano7SourceId);
-    speaker.PlaySoundSource(piano8SourceId);
-    speaker.PlaySoundSource(piano9SourceId);
-};
-
+var piano = new OnOffSound(Piano.PianoWaveform);
+var onOffSourceId = speaker.CreateSoundSource(piano.GetSample, piano.Reset, () => new short[bufferSize]);
+keyboard.Key('o').Pressed += (c) => { piano.On(); speaker.PlaySoundSource(onOffSourceId); };
+keyboard.Key('o').Released += (c) => piano.Off();
 
 keyboard.KeyPressed += Console.Write;
 
