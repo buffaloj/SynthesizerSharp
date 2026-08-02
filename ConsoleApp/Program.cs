@@ -11,8 +11,8 @@ using System.Runtime.InteropServices;
 var keyboard = new Keyboard();
 var speaker = new Speaker();
 
-//var wavFile = new WavFile("boing.wav");
-var wavFile = new WavFile("c2.wav");
+var wavFile = new WavFile("boing.wav");
+//var wavFile = new WavFile("c2.wav");
 
 keyboard.Key('f').Pressed += (c) => speaker.PlayPcmSamples(wavFile.PcmData);
 
@@ -25,11 +25,6 @@ keyboard.Key('c').Pressed += (c) => speaker.PlaySoundSource(ttlSourceId);
 var ticTacHigh = new WarGamesTicTacHigh();
 var tthSourceId = speaker.CreateSoundSource(ticTacHigh.TryFillBuffer, ticTacHigh.Reset, () => new short[bufferSize]);
 keyboard.Key('v').Pressed += (c) => speaker.PlaySoundSource(tthSourceId);
-
-var siren = new Siren();
-var sirenSourceId = speaker.CreateSoundSource(siren.TryFillBuffer, ticTacHigh.Reset, () => new short[bufferSize]);
-keyboard.Key('b').Pressed += (c) => { siren.KeyDown(); speaker.PlaySoundSource(sirenSourceId); };
-keyboard.Key('b').Released += (c) => siren.KeyUp();
 
 var waa = new WaaWaa();
 var waaSourceId = speaker.CreateSoundSource(waa.TryFillBuffer, ticTacHigh.Reset, () => new short[bufferSize]);
@@ -44,6 +39,11 @@ var piano = new OnOffSound(Piano.PianoWaveform);
 var onOffSourceId = speaker.CreateSoundSource(piano.GetSample, piano.Reset, () => new short[bufferSize]);
 keyboard.Key('o').Pressed += (c) => { piano.On(); speaker.PlaySoundSource(onOffSourceId); };
 keyboard.Key('o').Released += (c) => piano.Off();
+
+var siren = new Siren();
+var sirenSourceId = speaker.CreateSoundSource(siren.GetSample, siren.Reset, () => new short[bufferSize]);
+keyboard.Key('i').Pressed += (c) => { siren.On(); speaker.PlaySoundSource(sirenSourceId); };
+keyboard.Key('i').Released += (c) => siren.Off();
 
 keyboard.KeyPressed += Console.Write;
 

@@ -1,60 +1,57 @@
-﻿using SoundSynthesis.Waveforms;
-
-namespace SoundSynthesis.Sounds
+﻿namespace SoundSynthesis.Sounds
 {
     public class Siren
     {
-        private int _sampleRate = 44100;
-        protected double _highFreqency = 100;
-        private double _angleIncrement = 0.02;
-        private double _lfAngle = 0.0;
-        private short _nextSample;
-        private double _nextAngle;
+        private int _nextSampleIndex = 0;
+        private double? _lastSample = null;
 
-        protected double _hfMin = 200;
-        protected double _hfMax = 800;
+        private double _frequency;
+        private double _freqMin = 200;
+        private double _freqMax = 800;
+        private double _angle = 0.0;
+        private double _angleRate = 0.025;
 
-        private bool _stopped = false;
+        private bool _on = false;
 
-        public Siren(int sampleRate=44100)
+        public Siren()
         {
-            sampleRate = _sampleRate;
+            _frequency = _freqMin;
         }
 
-        public void KeyDown()
+        public void On()
         {
-            Reset();
-            _stopped = false;
+            _on = true;
         }
 
-        public void KeyUp()
+        public void Off()
         {
-            _stopped = true;
+            _on = false;
         }
 
         public void Reset()
         {
-            _nextSample = 0;
-            _nextAngle = 0;
+            _nextSampleIndex = 0;
         }
 
-        public bool TryFillBuffer(Int16[] buffer)
+        public double? GetSample(double timeStep)
         {
-            if (_stopped)
-                return false;
-
-            var periods = 0;
-            while (_nextSample < buffer.Length)
+            var t = _nextSampleIndex++ * timeStep;
+            if (_on)
             {
-                TriangleWave.GenerateSingleTriangleWave(ref _nextSample, ref _nextAngle, buffer, _highFreqency, _sampleRate);
-                var lerp = (1.0 + Math.Sin(_lfAngle)) / 2.0;
-                _highFreqency = _hfMin + (lerp * (_hfMax - _hfMin));
-                _lfAngle += _angleIncrement;
-                periods++;
-            }
-            _nextSample = 0;
+                var sample = Waveform.Sin(t, _frequency);
+                if (_lastSample < 0.0 && sample >= 0.0)
+                {
+                    var lerp = (1.0 + Math.Sin(_angle)) / 2.0;
+                    _frequency = _freqMin + (lerp * (_freqMax - _freqMin));
+                    _angle += _angleRate;
+                    _nextSampleIndex = 0;
+                }
 
-            return true;
+                _lastSample = sample;
+                return sample;
+            }
+
+            return null;
         }
     }
 }
