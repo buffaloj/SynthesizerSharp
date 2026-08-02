@@ -26,11 +26,6 @@ var ticTacHigh = new WarGamesTicTacHigh();
 var tthSourceId = speaker.CreateSoundSource(ticTacHigh.TryFillBuffer, ticTacHigh.Reset, () => new short[bufferSize]);
 keyboard.Key('v').Pressed += (c) => speaker.PlaySoundSource(tthSourceId);
 
-var waa = new WaaWaa();
-var waaSourceId = speaker.CreateSoundSource(waa.TryFillBuffer, ticTacHigh.Reset, () => new short[bufferSize]);
-keyboard.Key('n').Pressed += (c) => { waa.KeyDown(); speaker.PlaySoundSource(waaSourceId); };
-keyboard.Key('n').Released += (c) => waa.KeyUp();
-
 var adsrSound = new AdsrSound();
 var adsrSourceId = speaker.CreateSoundSource(adsrSound.TryFillBuffer, adsrSound.Reset, () => new short[bufferSize]);
 keyboard.Key('m').Pressed += (c) => speaker.PlaySoundSource(adsrSourceId);
@@ -44,6 +39,11 @@ var siren = new Siren();
 var sirenSourceId = speaker.CreateSoundSource(siren.GetSample, siren.Reset, () => new short[bufferSize]);
 keyboard.Key('i').Pressed += (c) => { siren.On(); speaker.PlaySoundSource(sirenSourceId); };
 keyboard.Key('i').Released += (c) => siren.Off();
+
+var waawaa2 = new WaaWaa();
+var waaSourceId2 = speaker.CreateSoundSource(waawaa2.GetSample, waawaa2.Reset, () => new short[bufferSize]);
+keyboard.Key('u').Pressed += (c) => { waawaa2.On(); speaker.PlaySoundSource(waaSourceId2); };
+keyboard.Key('u').Released += (c) => waawaa2.Off();
 
 keyboard.KeyPressed += Console.Write;
 
