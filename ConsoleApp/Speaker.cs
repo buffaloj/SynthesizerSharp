@@ -51,7 +51,6 @@ namespace ConsoleApp
         {
             public uint SourceId { get; set; }
             public IEnumerable<BufferInfo> Buffers { get; set; }
-            public Func<short[], bool> FillBuffer { get; set; }
             public Func<double, double?> GetNextSample { get; set; }
             public Action StopComplete { get; set; }
 
@@ -59,11 +58,8 @@ namespace ConsoleApp
             public int SampleRate { get; set; }
             public bool IsPlaying { get; set; }
 
-            public bool FillBuffer2(short[] buffer)
+            public bool FillBuffer(short[] buffer)
             {
-                if (FillBuffer != null)
-                    return FillBuffer(buffer);
-
                 if (GetNextSample != null)
                 {
                     var timeStep = 1.0 / SampleRate;
@@ -98,8 +94,7 @@ namespace ConsoleApp
             var al = AL.GetApi(true);
             foreach (var buffer in sourceInfo.Buffers)
             {
-                //if (sourceInfo.FillBuffer.Invoke(buffer.PcmData))
-                if (sourceInfo.FillBuffer2(buffer.PcmData))
+                if (sourceInfo.FillBuffer(buffer.PcmData))
                 {
                     al.BufferData(buffer.BufferId, sourceInfo.Format, buffer.PcmData, sourceInfo.SampleRate);
 
@@ -113,50 +108,6 @@ namespace ConsoleApp
             sourceInfo.IsPlaying = true;
 
             al.SourcePlay(sourceInfo.SourceId);
-        }
-
-        // support 8bps buffers? what of 24?
-        public uint CreateSoundSource(
-            Func<short[], bool> fillBuffer,
-            Action? stopComplete,
-            Func<short[]> createBuffer,
-            int numBuffers = 2,
-            int sampleRate = 44100, int bitsPerSample = 16, int channels = 1)
-        {
-            var al = AL.GetApi(true);
-            var format = channels == 1 ? bitsPerSample == 8 ? BufferFormat.Mono8 : BufferFormat.Mono16 : bitsPerSample == 8 ? BufferFormat.Stereo8 : BufferFormat.Stereo16;
-
-            var buffers = new List<BufferInfo>();
-
-            var bufferIds = new uint[numBuffers];
-            fixed (uint* ptr = bufferIds)
-            {
-                al.GenBuffers(numBuffers, ptr);
-
-                for (var i = 0; i < numBuffers; i++)
-                {
-                    var info = new BufferInfo
-                    {
-                        BufferId = ptr[i],
-                        PcmData = createBuffer()
-                    };
-                    buffers.Add(info);
-                }
-            }
-
-            var source = new SourceInfo
-            {
-                SourceId = al.GenSource(),
-                Format = format,
-                SampleRate = sampleRate,
-                Buffers = buffers,
-                FillBuffer = fillBuffer,
-                StopComplete = stopComplete
-            };
-            
-            _soundSources.Add(source);
-
-            return source.SourceId;
         }
 
         public uint CreateSoundSource(
@@ -231,7 +182,7 @@ namespace ConsoleApp
                         buffer.IsQueued = false;
 
                         // Refill the buffer using your audio data provider
-                        if (source.FillBuffer2(buffer.PcmData))
+                        if (source.FillBuffer(buffer.PcmData))
                         {
                             al.BufferData(buffer.BufferId, source.Format, buffer.PcmData, source.SampleRate);
 
