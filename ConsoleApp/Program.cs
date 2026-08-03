@@ -36,15 +36,15 @@ var sirenSourceId = speaker.CreateSoundSource(siren.GetSample, siren.Reset, () =
 keyboard.Key('i').Pressed += (c) => { siren.On(); speaker.PlaySoundSource(sirenSourceId); };
 keyboard.Key('i').Released += (c) => siren.Off();
 
-var waawaa2 = new WaaWaa();
-var waaSourceId2 = speaker.CreateSoundSource(waawaa2.GetSample, waawaa2.Reset, () => new short[bufferSize]);
-keyboard.Key('u').Pressed += (c) => { waawaa2.On(); speaker.PlaySoundSource(waaSourceId2); };
-keyboard.Key('u').Released += (c) => waawaa2.Off();
+var waawaa = new WaaWaa();
+var waaSourceId = speaker.CreateSoundSource(waawaa.GetSample, waawaa.Reset, () => new short[bufferSize]);
+keyboard.Key('u').Pressed += (c) => { waawaa.On(); speaker.PlaySoundSource(waaSourceId); };
+keyboard.Key('u').Released += (c) => waawaa.Off();
 
-var adsrSound2 = new OnOffSound(AdsrSound.AdsrWaveform);
-var adsrSourceId2 = speaker.CreateSoundSource(adsrSound2.GetSample, adsrSound2.Reset, () => new short[bufferSize]);
-keyboard.Key('y').Pressed += (c) => { adsrSound2.On(); speaker.PlaySoundSource(adsrSourceId2); };
-keyboard.Key('y').Released += (c) => adsrSound2.Off();
+var adsrSound = new OnOffSound(AdsrSound.AdsrWaveform);
+var adsrSourceId = speaker.CreateSoundSource(adsrSound.GetSample, adsrSound.Reset, () => new short[bufferSize]);
+keyboard.Key('y').Pressed += (c) => { adsrSound.On(); speaker.PlaySoundSource(adsrSourceId); };
+keyboard.Key('y').Released += (c) => adsrSound.Off();
 
 
 keyboard.KeyPressed += Console.Write;
