@@ -18,9 +18,9 @@ keyboard.Key('f').Pressed += (c) => speaker.PlayPcmSamples(wavFile.PcmData);
 
 var bufferSize = (int)(0.1 * 44100);
 
-var piano = new OnOffSound(Piano.PianoWaveform);
-var onOffSourceId = speaker.CreateSoundSource(piano.GetSample, piano.Reset, () => new short[bufferSize]);
-keyboard.Key('o').Pressed += (c) => { piano.On(); speaker.PlaySoundSource(onOffSourceId); };
+var piano = new Piano();
+var pianoSourceId = speaker.CreateSoundSource(piano.GetSample, piano.Reset, () => new short[bufferSize]);
+keyboard.Key('o').Pressed += (c) => { piano.On(); speaker.PlaySoundSource(pianoSourceId); };
 keyboard.Key('o').Released += (c) => piano.Off();
 
 var siren = new Siren();
@@ -33,21 +33,20 @@ var waaSourceId = speaker.CreateSoundSource(waawaa.GetSample, waawaa.Reset, () =
 keyboard.Key('u').Pressed += (c) => { waawaa.On(); speaker.PlaySoundSource(waaSourceId); };
 keyboard.Key('u').Released += (c) => waawaa.Off();
 
-var adsrSound = new OnOffSound(AdsrSound.AdsrWaveform);
+var adsrSound = new DeniedSound();
 var adsrSourceId = speaker.CreateSoundSource(adsrSound.GetSample, adsrSound.Reset, () => new short[bufferSize]);
 keyboard.Key('y').Pressed += (c) => { adsrSound.On(); speaker.PlaySoundSource(adsrSourceId); };
 keyboard.Key('y').Released += (c) => adsrSound.Off();
 
-var ticTacLow = new OnOffSound(WarGamesTicTacToe.LowWaveform);
+var ticTacLow = new WarGamesTicTacToeLow();
 var ttlSourceId = speaker.CreateSoundSource(ticTacLow.GetSample, ticTacLow.Reset, () => new short[bufferSize]);
 keyboard.Key('r').Pressed += (c) => { ticTacLow.On(); speaker.PlaySoundSource(ttlSourceId); };
 keyboard.Key('r').Released += (c) => ticTacLow.Off();
 
-var ticTacHigh = new OnOffSound(WarGamesTicTacToe.HighWaveform);
+var ticTacHigh = new WarGamesTicTacToeHigh();
 var tthSourceId = speaker.CreateSoundSource(ticTacHigh.GetSample, ticTacHigh.Reset, () => new short[bufferSize]);
 keyboard.Key('t').Pressed += (c) => { ticTacHigh.On(); speaker.PlaySoundSource(tthSourceId); };
 keyboard.Key('t').Released += (c) => ticTacHigh.Off();
-
 
 keyboard.KeyPressed += Console.Write;
 

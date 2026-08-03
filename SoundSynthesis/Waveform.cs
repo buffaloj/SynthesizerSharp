@@ -1,6 +1,6 @@
 ﻿namespace SoundSynthesis
 {
-    public class Waveform
+    public static class Waveform
     {
         public static double Scale(double scale, double sample)
         {
@@ -117,39 +117,6 @@
             double value = 2.0 * (phase - Math.Floor(0.5 + phase));
 
             return value * amplitude;
-        }
-    }
-
-    public class OnOffSound
-    {
-        private int _nextSample = 0;
-        private Func<double, double> _getSample;
-
-        public OnOffSound(Func<double, double> getSampleFunc)
-        {
-            _getSample = getSampleFunc;
-        }
-
-        private bool _on = false;
-        public void On()
-        {
-            _on = true;
-        }
-
-        public void Off()
-        {
-            _on = false;
-        }
-
-        public void Reset()
-        {
-            _nextSample = 0;
-        }
-
-        public double? GetSample(double timeStep)
-        {
-            var t = _nextSample++ * timeStep;
-            return _on ? _getSample(t) : null;
         }
     }
 }
