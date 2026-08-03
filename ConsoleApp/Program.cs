@@ -26,10 +26,6 @@ var ticTacHigh = new WarGamesTicTacHigh();
 var tthSourceId = speaker.CreateSoundSource(ticTacHigh.TryFillBuffer, ticTacHigh.Reset, () => new short[bufferSize]);
 keyboard.Key('v').Pressed += (c) => speaker.PlaySoundSource(tthSourceId);
 
-var adsrSound = new AdsrSound();
-var adsrSourceId = speaker.CreateSoundSource(adsrSound.TryFillBuffer, adsrSound.Reset, () => new short[bufferSize]);
-keyboard.Key('m').Pressed += (c) => speaker.PlaySoundSource(adsrSourceId);
-
 var piano = new OnOffSound(Piano.PianoWaveform);
 var onOffSourceId = speaker.CreateSoundSource(piano.GetSample, piano.Reset, () => new short[bufferSize]);
 keyboard.Key('o').Pressed += (c) => { piano.On(); speaker.PlaySoundSource(onOffSourceId); };
@@ -44,6 +40,12 @@ var waawaa2 = new WaaWaa();
 var waaSourceId2 = speaker.CreateSoundSource(waawaa2.GetSample, waawaa2.Reset, () => new short[bufferSize]);
 keyboard.Key('u').Pressed += (c) => { waawaa2.On(); speaker.PlaySoundSource(waaSourceId2); };
 keyboard.Key('u').Released += (c) => waawaa2.Off();
+
+var adsrSound2 = new OnOffSound(AdsrSound.AdsrWaveform);
+var adsrSourceId2 = speaker.CreateSoundSource(adsrSound2.GetSample, adsrSound2.Reset, () => new short[bufferSize]);
+keyboard.Key('y').Pressed += (c) => { adsrSound2.On(); speaker.PlaySoundSource(adsrSourceId2); };
+keyboard.Key('y').Released += (c) => adsrSound2.Off();
+
 
 keyboard.KeyPressed += Console.Write;
 

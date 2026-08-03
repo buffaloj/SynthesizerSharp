@@ -63,6 +63,38 @@
             return amplitudes[p] + lerpFactor * (amplitudes[p + 1] - amplitudes[p]);
         }
 
+        public static double Adsr(
+            double t,
+            double attack,
+            double decay,
+            double sustain,
+            double release,
+            double sustainStartAmplitude,
+            double sustainEndAmplitude)
+        {
+            double attackDonePoint = attack;
+            double decayDonePoint = attack + decay;
+            double sustainDonePoint = attack + decay + sustain;
+            double releaseDonePoint = attack + decay + sustain + release;
+
+            if (t >= releaseDonePoint)
+                return 0;
+
+            if (t < attackDonePoint)
+                return (double)(t / attackDonePoint);
+            else if (t < decayDonePoint)
+                return sustainStartAmplitude + (1.0 - sustainStartAmplitude) * (double)(decayDonePoint - t) / (double)(decayDonePoint - attackDonePoint);
+            else if (t < sustainDonePoint)
+            {
+                var lerpFactor = (double)(t - decayDonePoint) / (double)(sustainDonePoint - decayDonePoint);
+                return sustainStartAmplitude + lerpFactor * (sustainEndAmplitude - sustainStartAmplitude);
+            }
+            else if (t < releaseDonePoint)
+                return sustainEndAmplitude * (double)(releaseDonePoint - t) / (double)(releaseDonePoint - sustainDonePoint);
+
+            return 0.0;
+        }
+
         public static double Sin(double t, double frequency, double amplitude = 1.0)
         {
             return Math.Sin(2 * Math.PI * frequency * t) * amplitude;
