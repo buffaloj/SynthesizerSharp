@@ -19,33 +19,33 @@ keyboard.Key('f').Pressed += (c) => speaker.PlayPcmSamples(wavFile.PcmData);
 var bufferSize = (int)(0.1 * 44100);
 
 var piano = new Piano();
-var pianoSourceId = speaker.CreateSoundSource(piano.GetSample, piano.Reset, () => new short[bufferSize]);
+var pianoSourceId = speaker.CreateSoundSource(piano.TryGetSample, piano.Reset, () => new short[bufferSize]);
 keyboard.Key('o').Pressed += (c) => { piano.On(); speaker.PlaySoundSource(pianoSourceId); };
 keyboard.Key('o').Released += (c) => piano.Off();
 
 var siren = new Siren();
-var sirenSourceId = speaker.CreateSoundSource(siren.GetSample, siren.Reset, () => new short[bufferSize]);
+var sirenSourceId = speaker.CreateSoundSource(siren.TryGetSample, siren.Reset, () => new short[bufferSize]);
 keyboard.Key('i').Pressed += (c) => { siren.On(); speaker.PlaySoundSource(sirenSourceId); };
 keyboard.Key('i').Released += (c) => siren.Off();
 
 var waawaa = new WaaWaa();
-var waaSourceId = speaker.CreateSoundSource(waawaa.GetSample, waawaa.Reset, () => new short[bufferSize]);
-keyboard.Key('u').Pressed += (c) => { waawaa.On(); speaker.PlaySoundSource(waaSourceId); };
+var waaSourceId = speaker.CreateSoundSource(waawaa.TryGetSample, waawaa.Reset, () => new short[bufferSize]);
+keyboard.Key('u').Pressed += (c) => { waawaa.On(); speaker.PlaySoundSource(waaSourceId);  };
 keyboard.Key('u').Released += (c) => waawaa.Off();
 
 var adsrSound = new DeniedSound();
-var adsrSourceId = speaker.CreateSoundSource(adsrSound.GetSample, adsrSound.Reset, () => new short[bufferSize]);
+var adsrSourceId = speaker.CreateSoundSource(adsrSound.TryGetSample, adsrSound.Reset, () => new short[bufferSize]);
 keyboard.Key('y').Pressed += (c) => { adsrSound.On(); speaker.PlaySoundSource(adsrSourceId); };
 keyboard.Key('y').Released += (c) => adsrSound.Off();
 
 var ticTacLow = new WarGamesTicTacToeLow();
-var ttlSourceId = speaker.CreateSoundSource(ticTacLow.GetSample, ticTacLow.Reset, () => new short[bufferSize]);
+var ttlSourceId = speaker.CreateSoundSource(ticTacLow.TryGetSample, ticTacLow.Reset, () => new short[bufferSize]);
 keyboard.Key('r').Pressed += (c) => { ticTacLow.On(); speaker.PlaySoundSource(ttlSourceId); };
 keyboard.Key('r').Released += (c) => ticTacLow.Off();
 
 var ticTacHigh = new WarGamesTicTacToeHigh();
-var tthSourceId = speaker.CreateSoundSource(ticTacHigh.GetSample, ticTacHigh.Reset, () => new short[bufferSize]);
-keyboard.Key('t').Pressed += (c) => { ticTacHigh.On(); speaker.PlaySoundSource(tthSourceId); };
+var tthSourceId = speaker.CreateSoundSource(ticTacHigh.TryGetSample, ticTacHigh.Reset, () => new short[bufferSize]);
+keyboard.Key('t').Pressed += (c) => { ticTacHigh.On(); speaker.PlaySoundSource(tthSourceId);  };
 keyboard.Key('t').Released += (c) => ticTacHigh.Off();
 
 keyboard.KeyPressed += Console.Write;

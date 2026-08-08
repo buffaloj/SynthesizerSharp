@@ -56,30 +56,27 @@ namespace ConsoleApp
 
             public BufferFormat Format { get; set; }
             public int SampleRate { get; set; }
-            public bool IsPlaying { get; set; }
 
-            public bool FillBuffer(short[] buffer)
+            public int FillBuffer(short[] buffer)
             {
+                int sampleCount = 0;
                 if (GetNextSample != null)
                 {
                     var timeStep = 1.0 / SampleRate;
-                    var filled = true;
                     for (int i = 0; i < buffer.Length; i++)
                     {
                         var sample = GetNextSample(timeStep);
                         if (sample != null)
-                            buffer[i] = (Int16)(sample.Value * Int16.MaxValue);
-                        else
                         {
-                            buffer[i] = 0;
-                            filled = false;
+                            buffer[i] = (Int16)(sample.Value * Int16.MaxValue);
+                            sampleCount++;
                         }
+                        else
+                            buffer[i] = 0;
                     }
-
-                    return filled;
                 }
 
-                return false;
+                return sampleCount;
             }
         }
 
@@ -92,9 +89,15 @@ namespace ConsoleApp
                 return; // uhhh, the caller made a mistake?
 
             var al = AL.GetApi(true);
+            al.GetSourceProperty(sourceInfo.SourceId, GetSourceInteger.SourceState, out int state);
+
             foreach (var buffer in sourceInfo.Buffers)
             {
-                if (sourceInfo.FillBuffer(buffer.PcmData))
+                if (buffer.IsQueued)
+                    continue;
+
+                var sampleCount = sourceInfo.FillBuffer(buffer.PcmData);
+                if (sampleCount > 0)
                 {
                     al.BufferData(buffer.BufferId, sourceInfo.Format, buffer.PcmData, sourceInfo.SampleRate);
 
@@ -105,9 +108,8 @@ namespace ConsoleApp
                 }
             }
 
-            sourceInfo.IsPlaying = true;
-
-            al.SourcePlay(sourceInfo.SourceId);
+            if (state != (int)SourceState.Playing)
+                al.SourcePlay(sourceInfo.SourceId);
         }
 
         public uint CreateSoundSource(
@@ -159,9 +161,6 @@ namespace ConsoleApp
 
             foreach (var source in _soundSources)
             {
-                if (!source.IsPlaying)
-                    continue;
-
                 int buffersProcessed = 0;
                 // 3. Monitor and refill buffers in your update loop
                 al.GetSourceProperty(source.SourceId, GetSourceInteger.BuffersProcessed, &buffersProcessed);//out var buffersProcessed);
@@ -182,7 +181,8 @@ namespace ConsoleApp
                         buffer.IsQueued = false;
 
                         // Refill the buffer using your audio data provider
-                        if (source.FillBuffer(buffer.PcmData))
+                        var sampleCount = source.FillBuffer(buffer.PcmData);
+                        if (sampleCount > 0)
                         {
                             al.BufferData(buffer.BufferId, source.Format, buffer.PcmData, source.SampleRate);
 
@@ -194,7 +194,6 @@ namespace ConsoleApp
 
                         if (!source.Buffers.Any(b => b.IsQueued))
                         {
-                            source.IsPlaying = false;
                             al.SourceStop(source.SourceId);
                             source.StopComplete?.Invoke();
                         }

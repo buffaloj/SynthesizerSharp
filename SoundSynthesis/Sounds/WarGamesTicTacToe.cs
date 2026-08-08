@@ -13,7 +13,7 @@ namespace SoundSynthesis.Sounds
 
     public abstract class WarGamesTicTacToe : OnOffSound
     {
-        public WarGamesTicTacToe(Func<double, double> getSampleFunc) : base(getSampleFunc)
+        public WarGamesTicTacToe(GetSample getSampleFunc) : base(getSampleFunc)
         {
         }
 

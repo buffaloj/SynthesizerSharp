@@ -1,6 +1,6 @@
 ﻿namespace SoundSynthesis
 {
-    public static class Waveform
+    public class Waveform
     {
         public static double Scale(double scale, double sample)
         {
