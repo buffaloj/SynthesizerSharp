@@ -50,6 +50,11 @@
             return samples.Sum();
         }
 
+        public static double Sum(Func<double, double>[] getSamples, double t)
+        {
+            return getSamples.Sum(get => get(t));
+        }
+
         public static double Envelope(double t, double lengthSeconds, float[] amplitudes)
         {
             if (t > lengthSeconds)
