@@ -14,30 +14,28 @@ var pianoKeys = new List<OnOffSound>()
     LoadSound('1', "C:\\Projects\\Sounds\\Piano\\C3.snd"),
     LoadSound('2', "C:\\Projects\\Sounds\\Piano\\Db3.snd"),
     LoadSound('3', "C:\\Projects\\Sounds\\Piano\\D3.snd"),
-    //MakeSound('3', Piano2.D3),
-    MakeSound('4', Piano.DS3),
-    MakeSound('5', Piano.E3),
-    MakeSound('6', Piano.F3),
-    MakeSound('7', Piano.FS3),
-    MakeSound('8', Piano.G3),
-    MakeSound('9', Piano.GS3),
-    MakeSound('0', Piano.A3),
-    MakeSound('-', Piano.AS3),
-    MakeSound('=', Piano.B3),
-
-    MakeSound('q', Piano.C4),
-    MakeSound('w', Piano.CS4),
-    MakeSound('e', Piano.D4),
-    MakeSound('r', Piano.DS4),
-    MakeSound('t', Piano.E4),
-    MakeSound('y', Piano.F4),
-    MakeSound('u', Piano.FS4),
-    MakeSound('i', Piano.G4),
-    MakeSound('o', Piano.GS4),
-    MakeSound('p', Piano.A4),
-    MakeSound('[', Piano.AS4),
-    MakeSound(']', Piano.B4),
-    MakeSound('\\', Piano.C5)
+    LoadSound('4', "C:\\Projects\\Sounds\\Piano\\Eb3.snd"),
+    LoadSound('5', "C:\\Projects\\Sounds\\Piano\\E3.snd"),
+    LoadSound('6', "C:\\Projects\\Sounds\\Piano\\F3.snd"),
+    LoadSound('7', "C:\\Projects\\Sounds\\Piano\\Gb3.snd"),
+    LoadSound('8', "C:\\Projects\\Sounds\\Piano\\G3.snd"),
+    LoadSound('9', "C:\\Projects\\Sounds\\Piano\\Ab3.snd"),
+    LoadSound('0', "C:\\Projects\\Sounds\\Piano\\A3.snd"),
+    LoadSound('-', "C:\\Projects\\Sounds\\Piano\\Bb3.snd"),
+    LoadSound('=', "C:\\Projects\\Sounds\\Piano\\B3.snd"),
+    LoadSound('q', "C:\\Projects\\Sounds\\Piano\\C4.snd"),
+    LoadSound('w', "C:\\Projects\\Sounds\\Piano\\Db4.snd"),
+    LoadSound('e', "C:\\Projects\\Sounds\\Piano\\D4.snd"),
+    LoadSound('r', "C:\\Projects\\Sounds\\Piano\\Eb4.snd"),
+    LoadSound('t', "C:\\Projects\\Sounds\\Piano\\E4.snd"),
+    LoadSound('y', "C:\\Projects\\Sounds\\Piano\\F4.snd"),
+    LoadSound('u', "C:\\Projects\\Sounds\\Piano\\Gb4.snd"),
+    LoadSound('i', "C:\\Projects\\Sounds\\Piano\\G4.snd"),
+    LoadSound('o', "C:\\Projects\\Sounds\\Piano\\Ab4.snd"),
+    LoadSound('p', "C:\\Projects\\Sounds\\Piano\\A4.snd"),
+    LoadSound('[', "C:\\Projects\\Sounds\\Piano\\Bb4.snd"),
+    LoadSound(']', "C:\\Projects\\Sounds\\Piano\\B4.snd"),
+    LoadSound('\\', "C:\\Projects\\Sounds\\Piano\\C5.snd"),
 };
 
 var wavFile = new WavFile("boing.wav");
@@ -49,9 +47,8 @@ AddSound('f', new WarGamesTicTacToeLow());
 AddSound('g', new WarGamesTicTacToeHigh());
 AddSound('h', new DeniedSound());
 
-LoadSound('j', "C:\\Projects\\Sounds\\Clarinet\\C4.csv");
-LoadSound('k', "C:\\Projects\\Sounds\\sin.csv");
-LoadSound('l', "C:\\Projects\\Sounds\\Piano\\C4.snd");
+LoadSound('k', "C:\\Projects\\Sounds\\Clarinet\\C4.snd");
+LoadSound('l', "C:\\Projects\\Sounds\\ThaiGong\\C4.snd");
 LoadSound(';', "C:\\Projects\\Sounds\\Cymbals\\13crash.mallet.snd", 0.18);
 
 keyboard.KeyPressed += Console.Write;
@@ -71,14 +68,14 @@ while (true)
 OnOffSound LoadSound(char key, string fileName, double scale = 0.25)
 {
     var jsonString = File.ReadAllText(fileName);
-    IEnumerable<Envelope> envelopes = JsonSerializer.Deserialize<IEnumerable<Envelope>>(jsonString) ?? throw new JsonException("Deserialization returned null.");
+    EnvelopeSound soundModel = JsonSerializer.Deserialize<EnvelopeSound>(jsonString) ?? throw new JsonException("Deserialization returned null.");
 
-    var func = envelopes.ToWaveform(scale);
-    var sound = new OnOffSound(func);
-    var soundSourceId = speaker.CreateSoundSource(sound.TryGetSample, sound.Reset, () => new short[bufferSize]);
-    keyboard.Key(key).Pressed += (c) => { sound.On(); speaker.PlaySoundSource(soundSourceId); };
-    keyboard.Key(key).Released += (c) => sound.Off();
-    return sound;
+    var func = soundModel.ToWaveform(scale);
+    var onOffSound = new OnOffSound(func);
+    var soundSourceId = speaker.CreateSoundSource(onOffSound.TryGetSample, onOffSound.Reset, () => new short[bufferSize]);
+    keyboard.Key(key).Pressed += (c) => { onOffSound.On(); speaker.PlaySoundSource(soundSourceId); };
+    keyboard.Key(key).Released += (c) => onOffSound.Off();
+    return onOffSound;
 }
 
 OnOffSound MakeSound(char key, GetSample getSample)
