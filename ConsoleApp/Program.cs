@@ -11,31 +11,31 @@ var bufferSize = (int)(0.1 * 44100);
 
 var pianoKeys = new List<OnOffSound>()
 {
-    LoadSound('1', "C:\\Projects\\Sounds\\Piano\\C3.snd"),
-    LoadSound('2', "C:\\Projects\\Sounds\\Piano\\Db3.snd"),
-    LoadSound('3', "C:\\Projects\\Sounds\\Piano\\D3.snd"),
-    LoadSound('4', "C:\\Projects\\Sounds\\Piano\\Eb3.snd"),
-    LoadSound('5', "C:\\Projects\\Sounds\\Piano\\E3.snd"),
-    LoadSound('6', "C:\\Projects\\Sounds\\Piano\\F3.snd"),
-    LoadSound('7', "C:\\Projects\\Sounds\\Piano\\Gb3.snd"),
-    LoadSound('8', "C:\\Projects\\Sounds\\Piano\\G3.snd"),
-    LoadSound('9', "C:\\Projects\\Sounds\\Piano\\Ab3.snd"),
-    LoadSound('0', "C:\\Projects\\Sounds\\Piano\\A3.snd"),
-    LoadSound('-', "C:\\Projects\\Sounds\\Piano\\Bb3.snd"),
-    LoadSound('=', "C:\\Projects\\Sounds\\Piano\\B3.snd"),
-    LoadSound('q', "C:\\Projects\\Sounds\\Piano\\C4.snd"),
-    LoadSound('w', "C:\\Projects\\Sounds\\Piano\\Db4.snd"),
-    LoadSound('e', "C:\\Projects\\Sounds\\Piano\\D4.snd"),
-    LoadSound('r', "C:\\Projects\\Sounds\\Piano\\Eb4.snd"),
-    LoadSound('t', "C:\\Projects\\Sounds\\Piano\\E4.snd"),
-    LoadSound('y', "C:\\Projects\\Sounds\\Piano\\F4.snd"),
-    LoadSound('u', "C:\\Projects\\Sounds\\Piano\\Gb4.snd"),
-    LoadSound('i', "C:\\Projects\\Sounds\\Piano\\G4.snd"),
-    LoadSound('o', "C:\\Projects\\Sounds\\Piano\\Ab4.snd"),
-    LoadSound('p', "C:\\Projects\\Sounds\\Piano\\A4.snd"),
-    LoadSound('[', "C:\\Projects\\Sounds\\Piano\\Bb4.snd"),
-    LoadSound(']', "C:\\Projects\\Sounds\\Piano\\B4.snd"),
-    LoadSound('\\', "C:\\Projects\\Sounds\\Piano\\C5.snd"),
+    LoadSound('1', ".\\Sounds\\Piano\\C3.snd"),
+    LoadSound('2', ".\\Sounds\\Piano\\Db3.snd"),
+    LoadSound('3', ".\\Sounds\\Piano\\D3.snd"),
+    LoadSound('4', ".\\Sounds\\Piano\\Eb3.snd"),
+    LoadSound('5', ".\\Sounds\\Piano\\E3.snd"),
+    LoadSound('6', ".\\Sounds\\Piano\\F3.snd"),
+    LoadSound('7', ".\\Sounds\\Piano\\Gb3.snd"),
+    LoadSound('8', ".\\Sounds\\Piano\\G3.snd"),
+    LoadSound('9', ".\\Sounds\\Piano\\Ab3.snd"),
+    LoadSound('0', ".\\Sounds\\Piano\\A3.snd"),
+    LoadSound('-', ".\\Sounds\\Piano\\Bb3.snd"),
+    LoadSound('=', ".\\Sounds\\Piano\\B3.snd"),
+    LoadSound('q', ".\\Sounds\\Piano\\C4.snd"),
+    LoadSound('w', ".\\Sounds\\Piano\\Db4.snd"),
+    LoadSound('e', ".\\Sounds\\Piano\\D4.snd"),
+    LoadSound('r', ".\\Sounds\\Piano\\Eb4.snd"),
+    LoadSound('t', ".\\Sounds\\Piano\\E4.snd"),
+    LoadSound('y', ".\\Sounds\\Piano\\F4.snd"),
+    LoadSound('u', ".\\Sounds\\Piano\\Gb4.snd"),
+    LoadSound('i', ".\\Sounds\\Piano\\G4.snd"),
+    LoadSound('o', ".\\Sounds\\Piano\\Ab4.snd"),
+    LoadSound('p', ".\\Sounds\\Piano\\A4.snd"),
+    LoadSound('[', ".\\Sounds\\Piano\\Bb4.snd"),
+    LoadSound(']', ".\\Sounds\\Piano\\B4.snd"),
+    LoadSound('\\', ".\\Sounds\\Piano\\C5.snd")
 };
 
 var wavFile = new WavFile("boing.wav");
@@ -47,9 +47,9 @@ AddSound('f', new WarGamesTicTacToeLow());
 AddSound('g', new WarGamesTicTacToeHigh());
 AddSound('h', new DeniedSound());
 
-LoadSound('k', "C:\\Projects\\Sounds\\Clarinet\\C4.snd");
-LoadSound('l', "C:\\Projects\\Sounds\\ThaiGong\\C4.snd");
-LoadSound(';', "C:\\Projects\\Sounds\\Cymbals\\13crash.mallet.snd", 0.18);
+LoadSound('k', ".\\Sounds\\Clarinet\\C4.snd");
+LoadSound('l', ".\\Sounds\\ThaiGong\\C4.snd");
+LoadSound(';', ".\\Sounds\\Cymbals\\13crash.mallet.snd", 0.18);
 
 keyboard.KeyPressed += Console.Write;
 
