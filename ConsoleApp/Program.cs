@@ -1,8 +1,21 @@
 ﻿using ConsoleApp;
+using NAudio.Midi;
+using Silk.NET.OpenAL;
 using SoundSynthesis;
 using SoundSynthesis.Sounds;
+using System.Management;
 using System.Runtime.InteropServices;
 using System.Text.Json;
+using System.Timers;
+
+List<MidiIn> inputs = new List<MidiIn>();
+
+ManagementEventWatcher insertWatcher;
+ManagementEventWatcher removeWatcher;
+
+// The debounce timer
+System.Timers.Timer debounceTimer;
+object lockObject = new object();
 
 var keyboard = new Keyboard();
 var speaker = new Speaker();
@@ -53,6 +66,9 @@ LoadSound(';', ".\\Sounds\\Cymbals\\13crash.mallet.snd", 0.18);
 
 keyboard.KeyPressed += Console.Write;
 
+StartMidiListening();
+StartMonitoring();
+
 while (true)
 {
     if (IsTerminalWindowActive())
@@ -64,6 +80,121 @@ while (true)
         Thread.Sleep(200);
 }
 
+#region MIDI
+void StartMonitoring()
+{
+    // Initialize a 500ms timer that only fires ONCE per burst
+    debounceTimer = new System.Timers.Timer(500);
+    debounceTimer.AutoReset = false;
+    debounceTimer.Elapsed += OnDebounceTimerElapsed;
+
+    // Query string looking for USB/Hardware device configuration changes
+    string query = "SELECT * FROM __InstanceOperationEvent WITHIN 2 WHERE TargetInstance ISA 'Win32_PnPEntity'";
+
+    // 1. Listen for device connections
+    insertWatcher = new ManagementEventWatcher(query.Replace("__InstanceOperationEvent", "__InstanceCreationEvent"));
+    insertWatcher.EventArrived += (s, e) => ResetDebounceTimer();
+    insertWatcher.Start();
+
+    // 2. Listen for device disconnections
+    removeWatcher = new ManagementEventWatcher(query.Replace("__InstanceOperationEvent", "__InstanceDeletionEvent"));
+    removeWatcher.EventArrived += (s, e) => ResetDebounceTimer();
+    removeWatcher.Start();
+
+    //Console.WriteLine("Monitoring hardware changes... Press any key to exit.");
+    //Console.ReadKey();
+
+    // Cleanup
+    //insertWatcher.Stop();
+    //removeWatcher.Stop();
+}
+
+void ResetDebounceTimer()
+{
+    lock (lockObject)
+    {
+        // Stop the running timer and start it over.
+        // This constantly pushes the execution forward until the burst of OS events stops.
+        debounceTimer.Stop();
+        debounceTimer.Start();
+    }
+}
+
+void OnDebounceTimerElapsed(object sender, ElapsedEventArgs e)
+{
+    // This block runs EXACTLY ONCE, 500ms after the very last USB event finishes.
+    Console.WriteLine("\n[Hardware Settled] Refreshing MIDI device list...");
+
+    StartMidiListening();
+}
+
+void StopMidiListening()
+{
+    inputs.Clear();
+}
+
+void StartMidiListening()
+{
+    int inputDevices = MidiIn.NumberOfDevices;
+    if (inputDevices == 0)
+        Console.WriteLine($"No Devices Connected");
+
+    for (int device = 0; device < inputDevices; device++)
+    {
+        // Retrieve details for each device
+        MidiInCapabilities caps = MidiIn.DeviceInfo(device);
+        Console.WriteLine($"Device ID {device}: {caps.ProductName}");
+
+        var midiIn = new MidiIn(device);
+        inputs.Add(midiIn);
+
+        // 2. Attach the event handler for incoming messages
+        midiIn.MessageReceived += OnMidiMessageReceived;
+        midiIn.ErrorReceived += OnMidiErrorReceived;
+
+        // 3. Start monitoring the incoming stream
+        midiIn.Start();
+    }
+}
+
+void OnMidiMessageReceived(object sender, MidiInMessageEventArgs e)
+{
+    // e.MidiEvent contains details about the note or control action
+    MidiEvent midiEvent = e.MidiEvent;
+
+    // Extract basic data or cast to specific event types
+    Console.WriteLine($"Event: {midiEvent.CommandCode} | Channel: {midiEvent.Channel} | Absolute Time: {e.Timestamp}");
+
+    if (e.MidiEvent is NoteEvent noteEvent)
+    {
+        bool isNoteOff = noteEvent.CommandCode == MidiCommandCode.NoteOff ||
+                         (noteEvent.CommandCode == MidiCommandCode.NoteOn && noteEvent.Velocity == 0);
+
+        var index = noteEvent.NoteNumber - 48;
+        var key = pianoKeys[index];
+
+        if (isNoteOff)
+        {
+            // Key was released
+            Console.WriteLine($"[NOTE OFF] Ch: {noteEvent.Channel} | Note: {noteEvent.NoteNumber}");
+            key.Off();
+        }
+        else
+        {
+            // Key was pressed down (Velocity > 0)
+            Console.WriteLine($"[NOTE ON ] Ch: {noteEvent.Channel} | Note: {noteEvent.NoteNumber} | Vel: {noteEvent.Velocity}");
+
+            key.On();
+        }
+    }
+}
+
+void OnMidiErrorReceived(object sender, MidiInMessageEventArgs e)
+{
+    Console.WriteLine($"Error received: {e.RawMessage}");
+}
+#endregion
+
 #region Helpers
 OnOffSound LoadSound(char key, string fileName, double scale = 0.25)
 {
@@ -73,24 +204,30 @@ OnOffSound LoadSound(char key, string fileName, double scale = 0.25)
     var func = soundModel.ToWaveform(scale);
     var onOffSound = new OnOffSound(func);
     var soundSourceId = speaker.CreateSoundSource(onOffSound.TryGetSample, onOffSound.Reset, () => new short[bufferSize]);
-    keyboard.Key(key).Pressed += (c) => { onOffSound.On(); speaker.PlaySoundSource(soundSourceId); };
+    onOffSound.onAction = () => speaker.PlaySoundSource(soundSourceId);
+
+    keyboard.Key(key).Pressed += (c) => { onOffSound.On();  };
     keyboard.Key(key).Released += (c) => onOffSound.Off();
     return onOffSound;
 }
 
 OnOffSound MakeSound(char key, GetSample getSample)
 {
-    var sound = new OnOffSound(getSample);
-    var soundSourceId = speaker.CreateSoundSource(sound.TryGetSample, sound.Reset, () => new short[bufferSize]);
-    keyboard.Key(key).Pressed += (c) => { sound.On(); speaker.PlaySoundSource(soundSourceId); };
-    keyboard.Key(key).Released += (c) => sound.Off();
-    return sound;
+    var onOffSound = new OnOffSound(getSample);
+    var soundSourceId = speaker.CreateSoundSource(onOffSound.TryGetSample, onOffSound.Reset, () => new short[bufferSize]);
+    onOffSound.onAction = () => speaker.PlaySoundSource(soundSourceId);
+
+    keyboard.Key(key).Pressed += (c) => onOffSound.On(); 
+    keyboard.Key(key).Released += (c) => onOffSound.Off();
+    return onOffSound;
 }
 
 OnOffSound AddSound(char key, OnOffSound sound)
 {
     var soundSourceId = speaker.CreateSoundSource(sound.TryGetSample, sound.Reset, () => new short[bufferSize]);
-    keyboard.Key(key).Pressed += (c) => { sound.On(); speaker.PlaySoundSource(soundSourceId); };
+    sound.onAction = () => speaker.PlaySoundSource(soundSourceId);
+
+    keyboard.Key(key).Pressed += (c) => sound.On(); speaker.PlaySoundSource(soundSourceId);
     keyboard.Key(key).Released += (c) => sound.Off();
     return sound;
 }

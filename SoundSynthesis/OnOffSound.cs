@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace SoundSynthesis
 {
     public delegate double GetSample(double timestep);
@@ -84,6 +86,7 @@ namespace SoundSynthesis
     {
         public GetSample GetSample { get; protected set; }
 
+        public Action onAction { get; set; }
         public double FadeOutRate => 10.0;
 
         private SoundState _state;
@@ -109,6 +112,7 @@ namespace SoundSynthesis
         public void On()
         {
             _state.Play(this);
+            onAction?.Invoke();
         }
 
         public void Off()
