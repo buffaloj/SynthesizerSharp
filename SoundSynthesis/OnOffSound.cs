@@ -1,6 +1,4 @@
 ﻿
-using System;
-
 namespace SoundSynthesis
 {
     public delegate double GetSample(double timestep);
@@ -41,6 +39,7 @@ namespace SoundSynthesis
     {
         public void Play(StateContext ctx) 
         {
+            ctx.ResetSampleIndex();
             ctx.SetState(new Playing());
         }
 
@@ -54,12 +53,12 @@ namespace SoundSynthesis
 
     public class FadingOut : SoundState
     {
-        private bool _needsStart = false;
         private double _fade = 1.0;
 
         public void Play(StateContext ctx)
         {
-            _needsStart = true;
+            ctx.ResetSampleIndex();
+            ctx.SetState(new Playing());
         }
 
         public void Stop(StateContext ctx) { }
@@ -68,14 +67,7 @@ namespace SoundSynthesis
         {
             _fade -= ctx.FadeOutRate * step;
             if (_fade < 0.0)
-            {
-                if (_needsStart)
-                    ctx.SetState(new Playing());
-                else
-                    ctx.SetState(new Stopped());
-                ctx.ResetSampleIndex();
-                return 0.0;
-            }
+                return null;
 
             var t = ctx.GetNextSampleIndex() * step;
             return ctx.GetSample(t) * _fade;
@@ -120,9 +112,10 @@ namespace SoundSynthesis
             _state.Stop(this);
         }
 
-        public void Reset()
+        public void OnStopped()
         {
-            Console.WriteLine("Reset");
+            _state = new Stopped();
+            Console.WriteLine("Stopped");
         }
 
         public double? TryGetSample(double timeStep)

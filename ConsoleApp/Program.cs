@@ -1,6 +1,5 @@
 ﻿using ConsoleApp;
 using NAudio.Midi;
-using Silk.NET.OpenAL;
 using SoundSynthesis;
 using SoundSynthesis.Sounds;
 using System.Management;
@@ -67,7 +66,7 @@ LoadSound(';', ".\\Sounds\\Cymbals\\13crash.mallet.snd", 0.18);
 keyboard.KeyPressed += Console.Write;
 
 StartMidiListening();
-StartMonitoring();
+StartMidiDeviceChangeMonitoring();
 
 while (true)
 {
@@ -81,7 +80,7 @@ while (true)
 }
 
 #region MIDI
-void StartMonitoring()
+void StartMidiDeviceChangeMonitoring()
 {
     // Initialize a 500ms timer that only fires ONCE per burst
     debounceTimer = new System.Timers.Timer(500);
@@ -171,6 +170,8 @@ void OnMidiMessageReceived(object sender, MidiInMessageEventArgs e)
                          (noteEvent.CommandCode == MidiCommandCode.NoteOn && noteEvent.Velocity == 0);
 
         var index = noteEvent.NoteNumber - 48;
+        if (index < 0)
+            return; // sanity check
         var key = pianoKeys[index];
 
         if (isNoteOff)
@@ -203,7 +204,7 @@ OnOffSound LoadSound(char key, string fileName, double scale = 0.25)
 
     var func = soundModel.ToWaveform(scale);
     var onOffSound = new OnOffSound(func);
-    var soundSourceId = speaker.CreateSoundSource(onOffSound.TryGetSample, onOffSound.Reset, () => new short[bufferSize]);
+    var soundSourceId = speaker.CreateSoundSource(onOffSound.TryGetSample, onOffSound.OnStopped, () => new short[bufferSize]);
     onOffSound.onAction = () => speaker.PlaySoundSource(soundSourceId);
 
     keyboard.Key(key).Pressed += (c) => { onOffSound.On();  };
@@ -214,7 +215,7 @@ OnOffSound LoadSound(char key, string fileName, double scale = 0.25)
 OnOffSound MakeSound(char key, GetSample getSample)
 {
     var onOffSound = new OnOffSound(getSample);
-    var soundSourceId = speaker.CreateSoundSource(onOffSound.TryGetSample, onOffSound.Reset, () => new short[bufferSize]);
+    var soundSourceId = speaker.CreateSoundSource(onOffSound.TryGetSample, onOffSound.OnStopped, () => new short[bufferSize]);
     onOffSound.onAction = () => speaker.PlaySoundSource(soundSourceId);
 
     keyboard.Key(key).Pressed += (c) => onOffSound.On(); 
@@ -224,7 +225,7 @@ OnOffSound MakeSound(char key, GetSample getSample)
 
 OnOffSound AddSound(char key, OnOffSound sound)
 {
-    var soundSourceId = speaker.CreateSoundSource(sound.TryGetSample, sound.Reset, () => new short[bufferSize]);
+    var soundSourceId = speaker.CreateSoundSource(sound.TryGetSample, sound.OnStopped, () => new short[bufferSize]);
     sound.onAction = () => speaker.PlaySoundSource(soundSourceId);
 
     keyboard.Key(key).Pressed += (c) => sound.On(); speaker.PlaySoundSource(soundSourceId);

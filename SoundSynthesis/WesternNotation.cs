@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 
-namespace SpectrogramTool.Wpf
+namespace SoundSynthesis
 {
     public static class WesternNotation
     {

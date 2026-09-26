@@ -1,5 +1,4 @@
-﻿using SpectrogramTool.Wpf;
-using static SpectrogramTool.Wpf.WesternNotation;
+﻿using static SoundSynthesis.WesternNotation;
 
 namespace SoundSynthesis.Sounds
 {
