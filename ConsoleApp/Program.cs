@@ -19,7 +19,7 @@ object timerLock = new object();
 object midiLock = new object();
 
 var keyboard = new Keyboard();
-var mixer = new Mixer();
+var speaker = new Speaker();
 
 var pianoKeys = new List<OnOff>()
 {
@@ -51,7 +51,7 @@ var pianoKeys = new List<OnOff>()
 };
 
 var wavFile = new WavFile("boing.wav");
-keyboard.Key('a').Pressed += (c) => mixer.PlayPcmSamples(wavFile.PcmData);
+keyboard.Key('a').Pressed += (c) => speaker.PlayPcmSamples(wavFile.PcmData);
 
 AddSound<Siren>('s');
 AddSound<WaaWaa>('d');
@@ -76,7 +76,7 @@ while (true)
 
         lock (midiLock)
         {
-            mixer.Update();
+            speaker.Update();
         }
     }
     else
@@ -213,7 +213,7 @@ OnOffSoundJuggler LoadSound(char key, string fileName, double scale = 0.25)
     var func = soundModel.ToWaveform(scale);
     var onOffSound = new OnOffSoundJuggler(() => new OnOffSound(func));
 
-    onOffSound.onAction = (sound) => mixer.PlayStream(sound.TryGetSample, sound.OnStopped);
+    onOffSound.onAction = (sound) => speaker.PlayStream(sound.TryGetSample, sound.OnStopped);
 
     keyboard.Key(key).Pressed += (c) => onOffSound.On();
     keyboard.Key(key).Released += (c) => onOffSound.Off();
@@ -225,7 +225,7 @@ OnOffSoundJuggler AddSound<TSound>(char key)
 {
     var juggler = new OnOffSoundJuggler(() => new TSound());
 
-    juggler.onAction = (sound) => mixer.PlayStream(sound.TryGetSample, sound.OnStopped);
+    juggler.onAction = (sound) => speaker.PlayStream(sound.TryGetSample, sound.OnStopped);
 
     keyboard.Key(key).Pressed += (c) => juggler.On();
     keyboard.Key(key).Released += (c) => juggler.Off();

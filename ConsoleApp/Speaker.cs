@@ -111,12 +111,12 @@ namespace SoundGeneration
         }
     }
 
-    public unsafe class Mixer
+    public unsafe class Speaker
     {
         private Stack<Channel> _available = new Stack<Channel>();
         private IDictionary<Channel, Stream> _playing = new Dictionary<Channel, Stream>();
 
-        public unsafe Mixer()
+        public unsafe Speaker()
         {
             // 1. Get the OpenAL context API and open the default device
             var alc = ALContext.GetApi(true);
