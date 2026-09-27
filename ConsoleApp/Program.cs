@@ -1,5 +1,6 @@
 ﻿using ConsoleApp;
 using NAudio.Midi;
+using SoundGeneration;
 using SoundSynthesis;
 using SoundSynthesis.Sounds;
 using System.Management;
@@ -14,14 +15,13 @@ ManagementEventWatcher removeWatcher;
 
 // The debounce timer
 System.Timers.Timer debounceTimer;
-object lockObject = new object();
+object timerLock = new object();
+object midiLock = new object();
 
 var keyboard = new Keyboard();
-var speaker = new Speaker();
+var mixer = new Mixer();
 
-var bufferSize = (int)(0.1 * 44100);
-
-var pianoKeys = new List<OnOffSound>()
+var pianoKeys = new List<OnOff>()
 {
     LoadSound('1', ".\\Sounds\\Piano\\C3.snd"),
     LoadSound('2', ".\\Sounds\\Piano\\Db3.snd"),
@@ -51,13 +51,13 @@ var pianoKeys = new List<OnOffSound>()
 };
 
 var wavFile = new WavFile("boing.wav");
-keyboard.Key('a').Pressed += (c) => speaker.PlayPcmSamples(wavFile.PcmData);
+keyboard.Key('a').Pressed += (c) => mixer.PlayPcmSamples(wavFile.PcmData);
 
-AddSound('s', new Siren());
-AddSound('d', new WaaWaa());
-AddSound('f', new WarGamesTicTacToeLow());
-AddSound('g', new WarGamesTicTacToeHigh());
-AddSound('h', new DeniedSound());
+AddSound<Siren>('s');
+AddSound<WaaWaa>('d');
+AddSound<WarGamesTicTacToeLow>('f');
+AddSound<WarGamesTicTacToeHigh>('g');
+AddSound<DeniedSound>('h');
 
 LoadSound('k', ".\\Sounds\\Clarinet\\C4.snd");
 LoadSound('l', ".\\Sounds\\ThaiGong\\C4.snd");
@@ -73,7 +73,11 @@ while (true)
     if (IsTerminalWindowActive())
     {
         keyboard.Poll();
-        speaker.UpdateBufferQueues();
+
+        lock (midiLock)
+        {
+            mixer.Update();
+        }
     }
     else
         Thread.Sleep(200);
@@ -110,7 +114,7 @@ void StartMidiDeviceChangeMonitoring()
 
 void ResetDebounceTimer()
 {
-    lock (lockObject)
+    lock (timerLock)
     {
         // Stop the running timer and start it over.
         // This constantly pushes the execution forward until the burst of OS events stops.
@@ -174,18 +178,21 @@ void OnMidiMessageReceived(object sender, MidiInMessageEventArgs e)
             return; // sanity check
         var key = pianoKeys[index];
 
-        if (isNoteOff)
+        lock (midiLock)
         {
-            // Key was released
-            Console.WriteLine($"[NOTE OFF] Ch: {noteEvent.Channel} | Note: {noteEvent.NoteNumber}");
-            key.Off();
-        }
-        else
-        {
-            // Key was pressed down (Velocity > 0)
-            Console.WriteLine($"[NOTE ON ] Ch: {noteEvent.Channel} | Note: {noteEvent.NoteNumber} | Vel: {noteEvent.Velocity}");
+            if (isNoteOff)
+            {
+                // Key was released
+                Console.WriteLine($"[NOTE OFF] Ch: {noteEvent.Channel} | Note: {noteEvent.NoteNumber}");
+                key.Off();
+            }
+            else
+            {
+                // Key was pressed down (Velocity > 0)
+                Console.WriteLine($"[NOTE ON ] Ch: {noteEvent.Channel} | Note: {noteEvent.NoteNumber} | Vel: {noteEvent.Velocity}");
 
-            key.On();
+                key.On();
+            }
         }
     }
 }
@@ -196,41 +203,33 @@ void OnMidiErrorReceived(object sender, MidiInMessageEventArgs e)
 }
 #endregion
 
+
 #region Helpers
-OnOffSound LoadSound(char key, string fileName, double scale = 0.25)
+OnOffSoundJuggler LoadSound(char key, string fileName, double scale = 0.25)
 {
     var jsonString = File.ReadAllText(fileName);
     EnvelopeSound soundModel = JsonSerializer.Deserialize<EnvelopeSound>(jsonString) ?? throw new JsonException("Deserialization returned null.");
 
     var func = soundModel.ToWaveform(scale);
-    var onOffSound = new OnOffSound(func);
-    var soundSourceId = speaker.CreateSoundSource(onOffSound.TryGetSample, onOffSound.OnStopped, () => new short[bufferSize]);
-    onOffSound.onAction = () => speaker.PlaySoundSource(soundSourceId);
+    var onOffSound = new OnOffSoundJuggler(() => new OnOffSound(func));
 
-    keyboard.Key(key).Pressed += (c) => { onOffSound.On();  };
+    onOffSound.onAction = (sound) => mixer.PlayStream(sound.TryGetSample, sound.OnStopped);
+
+    keyboard.Key(key).Pressed += (c) => onOffSound.On();
     keyboard.Key(key).Released += (c) => onOffSound.Off();
     return onOffSound;
 }
 
-OnOffSound MakeSound(char key, GetSample getSample)
+OnOffSoundJuggler AddSound<TSound>(char key)
+    where TSound : OnOffSound, new()
 {
-    var onOffSound = new OnOffSound(getSample);
-    var soundSourceId = speaker.CreateSoundSource(onOffSound.TryGetSample, onOffSound.OnStopped, () => new short[bufferSize]);
-    onOffSound.onAction = () => speaker.PlaySoundSource(soundSourceId);
+    var juggler = new OnOffSoundJuggler(() => new TSound());
 
-    keyboard.Key(key).Pressed += (c) => onOffSound.On(); 
-    keyboard.Key(key).Released += (c) => onOffSound.Off();
-    return onOffSound;
-}
+    juggler.onAction = (sound) => mixer.PlayStream(sound.TryGetSample, sound.OnStopped);
 
-OnOffSound AddSound(char key, OnOffSound sound)
-{
-    var soundSourceId = speaker.CreateSoundSource(sound.TryGetSample, sound.OnStopped, () => new short[bufferSize]);
-    sound.onAction = () => speaker.PlaySoundSource(soundSourceId);
-
-    keyboard.Key(key).Pressed += (c) => sound.On(); speaker.PlaySoundSource(soundSourceId);
-    keyboard.Key(key).Released += (c) => sound.Off();
-    return sound;
+    keyboard.Key(key).Pressed += (c) => juggler.On();
+    keyboard.Key(key).Released += (c) => juggler.Off();
+    return juggler;
 }
 #endregion
 

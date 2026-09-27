@@ -31,5 +31,12 @@
 
             return Waveform.Sin(t, 300, volume);
         }
+
+        public override void OnStopped()
+        {
+            base.OnStopped();
+
+            _angle = 0.0;
+        }
     }
 }
